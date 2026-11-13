@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Senior Khojo // Apex Tri-Platform Command Core</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            noir: '#030104',
+            obsidian: '#09030b',
+            wine: {
+              abyss: '#160209',
+              velvet: '#2e0413',
+              bordeaux: '#520722',
+              ruby: '#850d37',
+              crimson: '#c01346',
+              flare: '#ff1e66',
+              rose: '#f78ca2',
+              champagne: '#ffd6e0'
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            'glow-wine': '0 0 35px -5px rgba(255, 30, 102, 0.35)',
+            'glow-ruby': '0 0 25px -4px rgba(192, 19, 70, 0.4)',
+            'inner-wine': 'inset 0 1px 1px 0 rgba(255, 214, 224, 0.15)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- React 18 & Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body {
+      background-color: #030104;
+      color: #f1e4e9;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      overflow-x: hidden;
+      selection-background-color: #ff1e66;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #050106; }
+    ::-webkit-scrollbar-thumb { background: #380517; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #ff1e66; }
+
+    /* Custom Glassmorphism */
+    .khojo-glass {
+      background: rgba(14, 4, 16, 0.65);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 214, 224, 0.08);
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .khojo-glass:hover {
+      border-color: rgba(255, 30, 102, 0.35);
+      box-shadow: 0 16px 40px -10px rgba(133, 13, 55, 0.35);
+    }
+
+    .wine-text-gradient {
+      background: linear-gradient(135deg, #ffffff 0%, #ffd6e0 35%, #ff1e66 75%, #850d37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .ruby-badge-gradient {
+      background: linear-gradient(135deg, #520722 0%, #2e0413 100%);
+      border: 1px solid rgba(255, 30, 102, 0.3);
+    }
+
+    /* 3D Kinetic Tilt & Interactive Glare */
+    .tilt-card {
+      transform-style: preserve-3d;
+      perspective: 1000px;
+      transition: transform 0.25s ease-out, border-color 0.3s;
+    }
+
+    /* Ambient animated mesh gradient in hero */
+    .ambient-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(192, 19, 70, 0.22) 0%, rgba(82, 7, 34, 0.08) 50%, transparent 75%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+      animation: ambientFloat 14s ease-in-out infinite alternate;
+    }
+    @keyframes ambientFloat {
+      0% { transform: translate(-20%, -15%) scale(1); }
+      50% { transform: translate(30%, 20%) scale(1.15); }
+      100% { transform: translate(-10%, 25%) scale(0.9); }
+    }
+
+    /* Gyroscope / Orbital Core */
+    .gyro-core {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+    }
+    .gyro-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 30, 102, 0.25);
+      transform-style: preserve-3d;
+    }
+    .gyro-ring-1 {
+      animation: spinGyro1 18s linear infinite;
+      border-left: 2px solid #ff1e66;
+      border-right: 1px dashed rgba(255, 214, 224, 0.3);
+    }
+    .gyro-ring-2 {
+      animation: spinGyro2 14s linear infinite;
+      border-top: 2px solid #c01346;
+      border-bottom: 1px dashed rgba(255, 214, 224, 0.2);
+    }
+    .gyro-ring-3 {
+      animation: spinGyro3 22s linear infinite;
+      border-right: 2px solid #ffd6e0;
+      border-left: 1px dashed rgba(133, 13, 55, 0.4);
+    }
+    @keyframes spinGyro1 {
+      0% { transform: rotateX(65deg) rotateY(15deg) rotateZ(0deg); }
+      100% { transform: rotateX(65deg) rotateY(15deg) rotateZ(360deg); }
+    }
+    @keyframes spinGyro2 {
+      0% { transform: rotateX(25deg) rotateY(70deg) rotateZ(0deg); }
+      100% { transform: rotateX(25deg) rotateY(70deg) rotateZ(360deg); }
+    }
+    @keyframes spinGyro3 {
+      0% { transform: rotateX(50deg) rotateY(-45deg) rotateZ(0deg); }
+      100% { transform: rotateX(50deg) rotateY(-45deg) rotateZ(360deg); }
+    }
+
+    .gyro-nucleus {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 90px;
+      height: 90px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #ffd6e0 0%, #c01346 38%, #380517 75%, #0d0106 100%);
+      box-shadow: 0 0 50px rgba(255, 30, 102, 0.4), inset 0 0 15px rgba(255, 214, 224, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulseNucleus 4s ease-in-out infinite;
+    }
+    @keyframes pulseNucleus {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 20px #ff1e66); }
+      50% { transform: translate(-50%, -50%) scale(1.08); filter: drop-shadow(0 0 35px #ff1e66); }
+    }
+
+    /* Scroll reveal styling */
+    .reveal-section {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal-section.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Subtle cyber background grid */
+    .matrix-grid {
+      background-size: 36px 36px;
+      background-image: 
+        radial-gradient(rgba(255, 214, 224, 0.05) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="selection:bg-wine-flare/30 selection:text-white matrix-grid">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // SQUAD CONFIGURATION
+    const DEFAULT_MEMBERS = [
+
+      { name: 'Arjun', cf: 'Arjun_7015', lc: 'Arjun_7015', cc: 'arjun_7015' },
+      { name: 'Kalpy', cf: 'kalpy', lc: 'kalpy', cc: 'kalpy' },
+      { name: 'Bhavishya', cf: 'bhavishya4208', lc: 'bhavishya4208', cc: 'bhavishya4208' },
+      { name: 'Pritish', cf: 'pritishbaid', lc: 'pritishbaid', cc: 'pritishbaid' },
+      { name: 'Pulkit', cf: 'PulkitDaddy', lc: 'PulkitDaddy', cc: 'pulkitdaddy' },
+      { name: 'Sahil', cf: 'sahildewy19', lc: 'sahildewy19', cc: 'sahildewy19' },
+      { name: 'Gaurav', cf: 'whotfaagyv.java', lc: '', cc: '' }
+    ];
+
+    const CACHE_KEY_MEMBERS = 'KHOJO_MEMBERS_V7';
+    const CACHE_KEY_DATA = 'KHOJO_DATA_V7';
+    const CACHE_EXPIRY = 5 * 60 * 1000;
+
+    // CODEFORCES RANK TIERS
+    const CF_RANKS = [
+      { min: 0, max: 1199, name: 'Newbie', color: '#9e8590' },
+      { min: 1200, max: 1399, name: 'Pupil', color: '#56c271' },
+      { min: 1400, max: 1599, name: 'Specialist', color: '#38bdf8' },
+      { min: 1600, max: 1899, name: 'Expert', color: '#a78bfa' },
+      { min: 1900, max: 2199, name: 'Candidate Master', color: '#f472b6' },
+      { min: 2200, max: 2299, name: 'Master', color: '#fb923c' },
+      { min: 2300, max: 2399, name: 'International Master', color: '#f97316' },
+      { min: 2400, max: 2999, name: 'Grandmaster', color: '#ff1e66' },
+      { min: 3000, max: 9999, name: 'Legendary GM', color: '#ff0044' }
+    ];
+
+    function getRankMeta(rating) {
+      if (!rating || rating <= 0) return { name: 'Unrated', color: '#7a606a' };
+      return CF_RANKS.find(r => rating >= r.min && rating <= r.max) || CF_RANKS[0];
+    }
+
+    function formatTimeAgo(ts) {
+      const sec = Math.floor((Date.now() - ts * 1000) / 1000);
+      if (sec < 60) return `${sec}s ago`;
+      const min = Math.floor(sec / 60);
+      if (min < 60) return `${min}m ago`;
+      const hr = Math.floor(min / 60);
+      if (hr < 24) return `${hr}h ago`;
+      return `${Math.floor(hr / 24)}d ago`;
+    }
+
+    function localDateKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function dateKeyOrdinal(key) {
+      const [y, m, d] = key.split('-').map(Number);
+      return Date.UTC(y, m - 1, d) / 86400000;
+    }
+
+    // Rate-limited Codeforces fetcher
+    let lastCfReq = 0;
+    async function fetchCodeforcesJson(url) {
+      const wait = Math.max(0, 2050 - (Date.now() - lastCfReq));
+      if (wait) await new Promise(r => setTimeout(r, wait));
+      lastCfReq = Date.now();
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Codeforces returned HTTP ${res.status}`);
+      const j = await res.json();
+      if (j.status !== 'OK') throw new Error(j.comment || 'Codeforces gateway error');
+      return j;
+    }
+
+    // ==========================================
+    // INTERACTIVE NEBULA & WARP PARTICLES CANVAS
+    // ==========================================
+    function WineNebulaCanvas() {
+      const canvasRef = useRef(null);
+
+      useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let animId;
+        let w = (canvas.width = window.innerWidth);
+        let h = (canvas.height = window.innerHeight);
+
+        const handleResize = () => {
+          w = canvas.width = window.innerWidth;
+          h = canvas.height = window.innerHeight;
+        };
+        window.addEventListener('resize', handleResize);
+
+        // Constellation Nodes
+        const count = 48;
+        const nodes = Array.from({ length: count }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.45,
+          vy: (Math.random() - 0.5) * 0.45,
+          radius: Math.random() * 1.8 + 0.6,
+          pulse: Math.random() * Math.PI * 2,
+          color: Math.random() > 0.35 ? '#ff1e66' : '#ffd6e0'
+        }));
+
+        let mouse = { x: -1000, y: -1000 };
+        const handleMouseMove = (e) => {
+          mouse.x = e.clientX;
+          mouse.y = e.clientY;
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+
+        const loop = () => {
+          ctx.clearRect(0, 0, w, h);
+
+          // Deep wine-noir atmosphere
+          const grad = ctx.createRadialGradient(w * 0.7, h * 0.3, 100, w * 0.5, h * 0.5, Math.max(w, h));
+          grad.addColorStop(0, '#10020a');
+          grad.addColorStop(0.5, '#060107');
+          grad.addColorStop(1, '#020003');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, h);
+
+          for (let i = 0; i < nodes.length; i++) {
+            const p = nodes[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.pulse += 0.03;
+
+            if (p.x < 0 || p.x > w) p.vx *= -1;
+            if (p.y < 0 || p.y > h) p.vy *= -1;
+
+            // Interactive mouse repelling
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 120) {
+              const force = (1 - dist / 120) * 2;
+              p.x -= (dx / dist) * force;
+              p.y -= (dy / dist) * force;
+            }
+
+            const currentR = p.radius + Math.sin(p.pulse) * 0.4;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, Math.max(0.5, currentR), 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = p.color;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Neural synaptic lines
+            for (let j = i + 1; j < nodes.length; j++) {
+              const p2 = nodes[j];
+              const d = Math.hypot(p.x - p2.x, p.y - p2.y);
+              if (d < 140) {
+                const alpha = (1 - d / 140) * 0.16;
+                ctx.strokeStyle = `rgba(255, 30, 102, ${alpha})`;
+                ctx.lineWidth = 0.65;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+              }
+            }
+          }
+
+          animId = requestAnimationFrame(loop);
+        };
+        loop();
+
+        return () => {
+          window.removeEventListener('resize', handleResize);
+          window.removeEventListener('mousemove', handleMouseMove);
+          cancelAnimationFrame(animId);
+        };
+      }, []);
+
+      return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
+    }
+
+    // ==========================================
+    // ANIMATED COUNT-UP NUMBER
+    // ==========================================
+    function AnimatedNumber({ value }) {
+      const [displayVal, setDisplayVal] = useState(0);
+
+      useEffect(() => {
+        if (typeof value !== 'number' || isNaN(value)) {
+          setDisplayVal(value);
+          return;
+        }
+        let start = 0;
+        const duration = 1200;
+        const startTime = performance.now();
+
+        const step = (now) => {
+          const progress = Math.min(1, (now - startTime) / duration);
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          setDisplayVal(Math.floor(easeOut * value));
+          if (progress < 1) requestAnimationFrame(step);
+          else setDisplayVal(value);
+        };
+        requestAnimationFrame(step);
+      }, [value]);
+
+      return <span>{displayVal?.toLocaleString() ?? '—'}</span>;
+    }
+
+    // ==========================================
+    // MAIN APP CONTROLLER
+    // ==========================================
+    function App() {
+      const [members, setMembers] = useState(() => {
+        try {
+          const s = localStorage.getItem(CACHE_KEY_MEMBERS);
+          if (!s) return DEFAULT_MEMBERS;
+          const savedMembers = JSON.parse(s);
+          // Add newly configured default members to existing saved rosters without overwriting custom entries.
+          const gauravExists = savedMembers.some(m => (m.cf || '').toLowerCase() === 'whotfaagyv.java');
+          return gauravExists ? savedMembers : [...savedMembers, DEFAULT_MEMBERS.find(m => m.cf === 'whotfaagyv.java')];
+        } catch {
+          return DEFAULT_MEMBERS;
+        }
+      });
+
+      const [clanData, setClanData] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [refreshing, setRefreshing] = useState(false);
+      const [progressMsg, setProgressMsg] = useState('Initializing Senior Khojo Neural Core...');
+      const [selectedMember, setSelectedMember] = useState(null);
+      const [activeFilter, setActiveFilter] = useState('combined'); // 'combined' | 'cf' | 'lc' | 'streak'
+      const [activeSection, setActiveSection] = useState('hero');
+      const [syncError, setSyncError] = useState('');
+
+      // Form
+      const [formName, setFormName] = useState('');
+      const [formCf, setFormCf] = useState('');
+      const [formLc, setFormLc] = useState('');
+      const [formCc, setFormCc] = useState('');
+
+      useEffect(() => {
+        localStorage.setItem(CACHE_KEY_MEMBERS, JSON.stringify(members));
+      }, [members]);
+
+      useEffect(() => {
+        if (window.lucide) window.lucide.createIcons();
+      });
+
+      // Scroll Observer for Section Reveals & Spy
+      useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('revealed');
+              if (entry.target.id) setActiveSection(entry.target.id);
+            }
+          });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.reveal-section').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+      }, [clanData, loading]);
+
+      // TELEMETRY FETCH
+      const fetchTelemetry = async (force = false) => {
+        if (!members.length) {
+          setClanData([]);
+          setLoading(false);
+          return;
+        }
+
+        try {
+          setSyncError('');
+          if (!force) {
+            const cached = localStorage.getItem(CACHE_KEY_DATA);
+            if (cached) {
+              const { timestamp, data } = JSON.parse(cached);
+              if (Date.now() - timestamp < CACHE_EXPIRY && data.length === members.length) {
+                setClanData(data);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+
+          setRefreshing(true);
+          setProgressMsg('Connecting to Codeforces, LeetCode & CodeChef Gateways...');
+
+          const cfHandles = members.map(m => m.cf).filter(Boolean);
+          let cfProfiles = {};
+          if (cfHandles.length > 0) {
+            try {
+              const j = await fetchCodeforcesJson(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(cfHandles.join(';'))}`);
+              j.result.forEach(u => { cfProfiles[u.handle.toLowerCase()] = u; });
+            } catch (err) {
+              console.warn('CF Batch Fetch Warning:', err);
+            }
+          }
+
+          const aggregated = [];
+          const today = new Date();
+          const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const weekStart = new Date(todayStart);
+          weekStart.setDate(weekStart.getDate() - 6);
+          const monthStart = new Date(todayStart);
+          monthStart.setDate(monthStart.getDate() - 29);
+          const todayStartTs = Math.floor(todayStart.getTime() / 1000);
+          const weekStartTs = Math.floor(weekStart.getTime() / 1000);
+          const monthStartTs = Math.floor(monthStart.getTime() / 1000);
+
+          for (let i = 0; i < members.length; i++) {
+            const mem = members[i];
+            setProgressMsg(`Synchronizing ${mem.name} (${i + 1}/${members.length})...`);
+
+            let cfSubmissions = [];
+            let cfRatingHistory = [];
+            if (mem.cf) {
+              let from = 1;
+              const pageSize = 10000;
+              while (true) {
+                const subJ = await fetchCodeforcesJson(`https://codeforces.com/api/user.status?handle=${encodeURIComponent(mem.cf)}&from=${from}&count=${pageSize}`);
+                cfSubmissions.push(...subJ.result);
+                if (subJ.result.length < pageSize) break;
+                from += subJ.result.length;
+              }
+
+              const ratJ = await fetchCodeforcesJson(`https://codeforces.com/api/user.rating?handle=${encodeURIComponent(mem.cf)}`);
+              cfRatingHistory = ratJ.result;
+            }
+
+            const uniqueProblemsMap = new Map();
+            const dailyCounts = {};
+
+            const acceptedCF = cfSubmissions.filter(s => s.verdict === 'OK');
+            acceptedCF.sort((a, b) => a.creationTimeSeconds - b.creationTimeSeconds);
+
+            acceptedCF.forEach(sub => {
+              if (!sub.problem || !sub.problem.contestId) return;
+              const key = `${sub.problem.contestId}-${sub.problem.index}`;
+              if (!uniqueProblemsMap.has(key)) {
+                uniqueProblemsMap.set(key, sub);
+                const dStr = localDateKey(new Date(sub.creationTimeSeconds * 1000));
+                dailyCounts[dStr] = (dailyCounts[dStr] || 0) + 1;
+              }
+            });
+
+            let solvedToday = 0;
+            let solved7d = 0;
+            let solved30d = 0;
+
+            uniqueProblemsMap.forEach(sub => {
+              const ts = sub.creationTimeSeconds;
+              if (ts >= todayStartTs) solvedToday++;
+              if (ts >= weekStartTs) solved7d++;
+              if (ts >= monthStartTs) solved30d++;
+            });
+
+            // Streaks
+            const activeDays = Object.keys(dailyCounts).filter(k => dailyCounts[k] > 0).sort();
+            let currentStreak = 0;
+            let maxStreak = 0;
+            let counter = 0;
+
+            for (let d = 0; d < activeDays.length; d++) {
+              if (d === 0 || dateKeyOrdinal(activeDays[d]) - dateKeyOrdinal(activeDays[d - 1]) === 1) {
+                counter++;
+              } else {
+                counter = 1;
+              }
+              maxStreak = Math.max(maxStreak, counter);
+            }
+
+            const todayKey = localDateKey(new Date());
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayKey = localDateKey(yesterday);
+            const streakAnchor = dailyCounts[todayKey] ? todayKey : yesterdayKey;
+
+            if (dailyCounts[streakAnchor]) {
+              currentStreak = 1;
+              const cursor = new Date(`${streakAnchor}T12:00:00`);
+              while (true) {
+                cursor.setDate(cursor.getDate() - 1);
+                if (!dailyCounts[localDateKey(cursor)]) break;
+                currentStreak++;
+              }
+            }
+
+            let ratingChange = 0;
+            if (cfRatingHistory.length > 0) {
+              const last = cfRatingHistory[cfRatingHistory.length - 1];
+              ratingChange = last.newRating - last.oldRating;
+            }
+
+            // LeetCode
+            let lcStats = { total: 0, easy: 0, medium: 0, hard: 0, rank: 'N/A' };
+            if (mem.lc) {
+              try {
+                const lcR = await fetch(`https://leetcode-stats-api.herokuapp.com/${encodeURIComponent(mem.lc)}`);
+                const lcJ = await lcR.json();
+                if (lcJ.status === 'success') {
+                  lcStats = {
+                    total: lcJ.totalSolved || 0,
+                    easy: lcJ.easySolved || 0,
+                    medium: lcJ.mediumSolved || 0,
+                    hard: lcJ.hardSolved || 0,
+                    rank: lcJ.ranking || 'N/A'
+                  };
+                }
+              } catch (e) {}
+            }
+
+            // CodeChef
+            let ccStats = { rating: 0, stars: 'Unrated', rank: 'N/A' };
+            if (mem.cc) {
+              try {
+                const ccR = await fetch(`https://codechef-api.vercel.app/handle/${encodeURIComponent(mem.cc)}`);
+                const ccJ = await ccR.json();
+                if (ccJ && (ccJ.currentRating || ccJ.rating)) {
+                  ccStats = {
+                    rating: ccJ.currentRating || ccJ.rating || 0,
+                    stars: ccJ.stars || '1★',
+                    rank: ccJ.globalRank || 'N/A'
+                  };
+                }
+              } catch (e) {}
+            }
+
+            const cfProfile = (mem.cf && cfProfiles[mem.cf.toLowerCase()]) || { handle: mem.cf || 'N/A', rating: 0 };
+            const combinedScore = uniqueProblemsMap.size + lcStats.total;
+
+            aggregated.push({
+              member: mem,
+              cfProfile,
+              rankMeta: getRankMeta(cfProfile.rating),
+              totalCFSolved: uniqueProblemsMap.size,
+              solvedToday,
+              solved7d,
+              solved30d,
+              ratingChange,
+              currentStreak,
+              maxStreak,
+              dailyCounts,
+              recentAccepted: [...uniqueProblemsMap.values()].slice(-15).reverse(),
+              ratingHistory: cfRatingHistory,
+              lc: lcStats,
+              cc: ccStats,
+              combinedScore
+            });
+          }
+
+          localStorage.setItem(CACHE_KEY_DATA, JSON.stringify({ timestamp: Date.now(), data: aggregated }));
+          setClanData(aggregated);
+        } catch (err) {
+          console.error(err);
+          setSyncError(err.message || 'Telemetry connection failed.');
+        } finally {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      };
+
+      useEffect(() => {
+        fetchTelemetry();
+      }, [members]);
+
+      // Metrics & Honors
+      const metrics = useMemo(() => {
+        if (!clanData.length) return null;
+        const totalCF = clanData.reduce((acc, m) => acc + m.totalCFSolved, 0);
+        const totalLC = clanData.reduce((acc, m) => acc + m.lc.total, 0);
+        const totalAll = totalCF + totalLC;
+        const todayAC = clanData.reduce((acc, m) => acc + m.solvedToday, 0);
+        const sevenDaysAC = clanData.reduce((acc, m) => acc + m.solved7d, 0);
+
+        const ratedCF = clanData.filter(m => m.cfProfile.rating);
+        const avgCFRating = ratedCF.length > 0 ? Math.round(ratedCF.reduce((a, b) => a + b.cfProfile.rating, 0) / ratedCF.length) : 0;
+
+        const dailyVanguard = [...clanData].sort((a, b) => b.solvedToday - a.solvedToday)[0];
+        const weeklyGrinder = [...clanData].sort((a, b) => b.solved7d - a.solved7d)[0];
+        const apexPilot = [...clanData].sort((a, b) => (b.cfProfile.rating || 0) - (a.cfProfile.rating || 0))[0];
+        const streakTitan = [...clanData].sort((a, b) => b.currentStreak - a.currentStreak)[0];
+
+        return {
+          totalCF, totalLC, totalAll, todayAC, sevenDaysAC, avgCFRating,
+          dailyVanguard: (dailyVanguard && dailyVanguard.solvedToday > 0) ? dailyVanguard : null,
+          weeklyGrinder: (weeklyGrinder && weeklyGrinder.solved7d > 0) ? weeklyGrinder : null,
+          apexPilot,
+          streakTitan: (streakTitan && streakTitan.currentStreak > 0) ? streakTitan : null
+        };
+      }, [clanData]);
+
+      // Sorted pilots for master table
+      const sortedPilots = useMemo(() => {
+        return [...clanData].sort((a, b) => {
+          if (activeFilter === 'combined') return b.combinedScore - a.combinedScore;
+          if (activeFilter === 'cf') return (b.cfProfile.rating || 0) - (a.cfProfile.rating || 0);
+          if (activeFilter === 'lc') return b.lc.total - a.lc.total;
+          if (activeFilter === 'streak') return b.currentStreak - a.currentStreak;
+          return 0;
+        });
+      }, [clanData, activeFilter]);
+
+      const handleAddMember = async (e) => {
+        e.preventDefault();
+        const cfHandle = formCf.trim();
+        if (!formName.trim() || !cfHandle) return;
+
+        if (members.some(m => (m.cf || '').toLowerCase() === cfHandle.toLowerCase())) {
+          alert('Pilot handle already exists in Senior Khojo roster.');
+          return;
+        }
+
+        try {
+          await fetchCodeforcesJson(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(cfHandle)}`);
+        } catch (err) {
+          alert(`Invalid Codeforces handle: ${err.message}`);
+          return;
+        }
+
+        const updated = [...members, {
+          name: formName.trim(),
+          cf: cfHandle,
+          lc: formLc.trim() || cfHandle,
+          cc: formCc.trim() || cfHandle
+        }];
+
+        setMembers(updated);
+        setFormName('');
+        setFormCf('');
+        setFormLc('');
+        setFormCc('');
+        localStorage.removeItem(CACHE_KEY_DATA);
+      };
+
+      const handleRemoveMember = (idx) => {
+        if (members.length <= 1) return alert('Minimum 1 pilot required.');
+        if (confirm('De-authorize pilot from Senior Khojo matrix?')) {
+          const updated = members.filter((_, i) => i !== idx);
+          setMembers(updated);
+          localStorage.removeItem(CACHE_KEY_DATA);
+        }
+      };
+
+      return (
+        <div className="relative min-h-screen text-[#f1e4e9] overflow-x-hidden">
+          <WineNebulaCanvas />
+          <div className="ambient-glow top-[10%] left-[60%]"></div>
+          <div className="ambient-glow top-[65%] left-[5%]"></div>
+
+          {/* FLOATING EXECUTIVE HUD HEADER */}
+          <header className="sticky top-4 z-50 max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="khojo-glass rounded-2xl px-5 py-3.5 flex items-center justify-between border-wine-flare/20 shadow-glow-wine">
+              
+              {/* Brand Logo */}
+              <a href="#hero" className="flex items-center space-x-3 group">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-wine-flare via-wine-ruby to-noir p-[1px] shadow-glow-wine">
+                  <div className="w-full h-full bg-[#0a0209] rounded-xl flex items-center justify-center font-mono font-black text-wine-flare group-hover:scale-105 transition-transform">
+                    SK
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-black tracking-wider text-white text-base font-sans group-hover:text-wine-champagne transition-colors">
+                      SENIOR KHOJO
+                    </span>
+                    <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold tracking-widest uppercase bg-wine-crimson/20 text-wine-flare rounded border border-wine-flare/30">
+                      CORE v7.0
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-[#9c7885] font-mono tracking-tight flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-wine-flare animate-ping"></span>
+                    TRI-PLATFORM RADAR &bull; {members.length} PILOTS ACTIVE
+                  </p>
+                </div>
+              </a>
+
+              {/* Navigation Links */}
+              <nav className="hidden md:flex items-center space-x-1.5 bg-black/40 px-3 py-1.5 rounded-xl border border-white/[0.06]">
+                {[
+                  { id: 'hero', label: 'Command', icon: 'radar' },
+                  { id: 'podium', label: 'Roster', icon: 'trophy' },
+                  { id: 'matrix', label: 'Grind Matrix', icon: 'calendar' },
+                  { id: 'telemetry', label: 'Curves', icon: 'activity' },
+                  { id: 'armory', label: 'Honor Arena', icon: 'award' },
+                  { id: 'terminal', label: 'Pilot Terminal', icon: 'terminal' }
+                ].map(item => (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className={`flex items-center space-x-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                      activeSection === item.id
+                        ? 'bg-gradient-to-r from-wine-velvet to-wine-bordeaux text-white border border-wine-flare/40 shadow-glow-wine'
+                        : 'text-[#9c7885] hover:text-white hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <i data-lucide={item.icon} className="w-3.5 h-3.5"></i>
+                    <span>{item.label}</span>
+                  </a>
+                ))}
+              </nav>
+
+              {/* Sync Trigger */}
+              <button
+                onClick={() => fetchTelemetry(true)}
+                disabled={refreshing}
+                className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-wine-ruby/30 to-wine-crimson/30 hover:from-wine-ruby/60 hover:to-wine-crimson/60 border border-wine-flare/40 font-mono text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-50"
+              >
+                <i data-lucide="refresh-cw" className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-wine-flare' : ''}`}></i>
+                <span className="hidden sm:inline">{refreshing ? 'SYNCING...' : 'SYNC RADAR'}</span>
+              </button>
+            </div>
+          </header>
+
+          {/* MAIN CONTENT RUNWAY */}
+          <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-24">
+            
+            {syncError && (
+              <div className="rounded-2xl border border-wine-flare/40 bg-wine-abyss/80 px-5 py-3 text-sm text-wine-champagne font-mono flex items-center justify-between">
+                <span>[TELEMETRY ALERT] {syncError}</span>
+                <span className="text-xs text-[#9c7885]">Cached telemetry preserved</span>
+              </div>
+            )}
+
+            {/* ========================================================
+                SECTION 1: HERO PULSE & GYROSCOPE MONOLITH
+            ======================================================== */}
+            <section id="hero" className="reveal-section pt-8">
+              <div className="khojo-glass rounded-3xl p-8 sm:p-12 relative overflow-hidden border-wine-flare/20">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                  
+                  {/* Left Column: Headlines */}
+                  <div className="lg:col-span-7 space-y-6">
+                    <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-wine-velvet/80 border border-wine-flare/30 text-[11px] font-mono text-wine-champagne">
+                      <span className="w-2 h-2 rounded-full bg-wine-flare animate-ping"></span>
+                      <span>HIGH-FREQUENCY INTELLIGENCE CORE</span>
+                    </div>
+
+                    <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black font-sans tracking-tight text-white leading-[1.04]">
+                      SENIOR <span className="wine-text-gradient">KHOJO</span>
+                      <br />
+                      <span className="text-2xl sm:text-4xl lg:text-5xl font-light italic font-serif text-[#ffd6e0]">
+                        Never fall behind.
+                      </span>
+                    </h1>
+
+                    <p className="text-sm sm:text-base text-[#ab8d99] max-w-xl font-sans leading-relaxed">
+                      Unified tracking telemetry across Codeforces, LeetCode, and CodeChef. Real-time velocity, interactive matrix streaks, and head-to-head trajectory analysis.
+                    </p>
+
+                    {/* Live Honor Tickers */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+                      {[
+                        { label: 'TOTAL SOLVED', val: metrics?.totalAll },
+                        { label: '7-DAY PACE', val: metrics?.sevenDaysAC ? `+${metrics?.sevenDaysAC}` : '—' },
+                        { label: 'AVG CF RATING', val: metrics?.avgCFRating },
+                        { label: 'PILOTS ONLINE', val: members.length }
+                      ].map((item, i) => (
+                        <div key={i} className="p-3.5 rounded-2xl bg-black/40 border border-white/[0.05]">
+                          <span className="block text-[10px] font-mono text-[#8a6875] tracking-wider uppercase">{item.label}</span>
+                          <span className="text-2xl font-black font-mono text-white mt-1 block">
+                            {typeof item.val === 'number' ? <AnimatedNumber value={item.val} /> : (item.val ?? '—')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right Column: 3D Gyroscope Interactive Monolith */}
+                  <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
+                    <div className="gyro-core cursor-pointer hover:scale-105 transition-transform" onClick={() => fetchTelemetry(true)}>
+                      <div className="gyro-ring gyro-ring-1"></div>
+                      <div className="gyro-ring gyro-ring-2"></div>
+                      <div className="gyro-ring gyro-ring-3"></div>
+                      <div className="gyro-nucleus">
+                        <span className="font-mono font-black text-xl text-white tracking-widest drop-shadow-md">SK</span>
+                      </div>
+                    </div>
+                    <p className="text-xs font-mono text-[#8a6875] mt-6 flex items-center gap-1.5">
+                      <i data-lucide="crosshair" className="w-3.5 h-3.5 text-wine-flare"></i>
+                      <span>ORBITAL RECEPTOR // LIVE TRANSMISSION</span>
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+            {/* ========================================================
+                SECTION 2: APEX PODIUM & MASTER ROSTER MATRIX
+            ======================================================== */}
+            <section id="podium" className="reveal-section space-y-8">
+              
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                  <div className="flex items-center space-x-2 text-wine-flare text-xs font-mono uppercase tracking-widest font-bold">
+                    <i data-lucide="crown" className="w-4 h-4"></i>
+                    <span>Apex Hierarchy</span>
+                  </div>
+                  <h2 className="text-3xl font-black text-white font-sans mt-1">Hall of Champions & Master Roster</h2>
+                  <p className="text-xs font-mono text-[#9c7885] mt-0.5">Click any pilot for full dossier analysis.</p>
+                </div>
+
+                {/* Filter Switcher */}
+                <div className="flex items-center space-x-1.5 bg-black/50 p-1.5 rounded-xl border border-white/[0.06] text-xs font-mono">
+                  <span className="text-[11px] text-[#8a6875] px-2">SORT BY:</span>
+                  {[
+                    { id: 'combined', label: 'Unified AC' },
+                    { id: 'cf', label: 'CF Rating' },
+                    { id: 'lc', label: 'LeetCode' },
+                    { id: 'streak', label: 'Active Streak' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveFilter(tab.id)}
+                      className={`px-3 py-1 rounded-lg transition-all ${
+                        activeFilter === tab.id
+                          ? 'bg-wine-crimson text-white font-bold shadow-glow-ruby'
+                          : 'text-[#9c7885] hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3D Holographic Pedestals (Top 3) */}
+              {clanData.length >= 3 && (() => {
+                const topThree = [...sortedPilots].slice(0, 3);
+                const [first, second, third] = topThree;
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                    {/* #2 Pedestal */}
+                    <div
+                      onClick={() => setSelectedMember(second)}
+                      className="order-2 md:order-1 khojo-glass rounded-3xl p-6 border-white/[0.08] hover:border-wine-flare/40 cursor-pointer relative group translate-y-3"
+                    >
+                      <div className="absolute top-3 right-5 font-mono font-black text-6xl text-white/[0.04]">#02</div>
+                      <div className="flex flex-col items-center text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.1] flex items-center justify-center font-bold text-2xl text-white mb-3">
+                          {second.member.name[0]}
+                        </div>
+                        <h4 className="font-bold text-white text-lg group-hover:text-wine-champagne transition-colors">{second.member.name}</h4>
+                        <p className="text-xs font-mono text-[#8a6875]">@{second.member.cf}</p>
+                        <div className="mt-4 px-3 py-1 rounded-full bg-black/40 border border-white/[0.08] text-xs font-mono text-wine-champagne">
+                          {second.combinedScore} Unified Solved
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* #1 Supreme Champion */}
+                    <div
+                      onClick={() => setSelectedMember(first)}
+                      className="order-1 md:order-2 khojo-glass rounded-3xl p-8 border-wine-flare/50 bg-gradient-to-b from-wine-ruby/30 via-wine-abyss/40 to-black cursor-pointer relative group -translate-y-2 shadow-glow-wine"
+                    >
+                      <div className="absolute top-3 right-5 font-mono font-black text-7xl text-wine-flare/10">#01</div>
+                      <div className="flex flex-col items-center text-center">
+                        <div className="relative mb-3">
+                          <div className="absolute -inset-2 rounded-2xl bg-wine-flare/30 blur-md animate-pulse"></div>
+                          <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-wine-crimson to-black border-2 border-wine-flare flex items-center justify-center font-black text-3xl text-white">
+                            {first.member.name[0]}
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full bg-wine-flare text-black font-mono text-[10px] font-black uppercase tracking-wider mb-1">
+                          👑 Apex Titan
+                        </span>
+                        <h4 className="font-black text-white text-2xl group-hover:text-wine-champagne transition-colors">{first.member.name}</h4>
+                        <p className="text-xs font-mono text-wine-rose">@{first.member.cf}</p>
+                        <div className="mt-4 text-3xl font-mono font-black text-white">
+                          {first.combinedScore} <span className="text-xs font-normal text-[#8a6875]">AC</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* #3 Pedestal */}
+                    <div
+                      onClick={() => setSelectedMember(third)}
+                      className="order-3 khojo-glass rounded-3xl p-6 border-white/[0.08] hover:border-wine-flare/40 cursor-pointer relative group translate-y-5"
+                    >
+                      <div className="absolute top-3 right-5 font-mono font-black text-6xl text-white/[0.04]">#03</div>
+                      <div className="flex flex-col items-center text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.1] flex items-center justify-center font-bold text-2xl text-white mb-3">
+                          {third.member.name[0]}
+                        </div>
+                        <h4 className="font-bold text-white text-lg group-hover:text-wine-champagne transition-colors">{third.member.name}</h4>
+                        <p className="text-xs font-mono text-[#8a6875]">@{third.member.cf}</p>
+                        <div className="mt-4 px-3 py-1 rounded-full bg-black/40 border border-white/[0.08] text-xs font-mono text-wine-champagne">
+                          {third.combinedScore} Unified Solved
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Master Unified Interactive Table */}
+              <div className="khojo-glass rounded-3xl overflow-hidden border-white/[0.08]">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left font-mono text-xs">
+                    <thead>
+                      <tr className="border-b border-white/[0.06] bg-black/50 text-[#8a6875] uppercase text-[10px]">
+                        <th className="py-4 px-5">Pilot</th>
+                        <th className="py-4 px-4 text-center">CF Rating</th>
+                        <th className="py-4 px-4 text-center">LeetCode AC</th>
+                        <th className="py-4 px-4 text-center">CodeChef Stars</th>
+                        <th className="py-4 px-4 text-center">Today</th>
+                        <th className="py-4 px-4 text-center">7D Velocity</th>
+                        <th className="py-4 px-4 text-center">Streak</th>
+                        <th className="py-4 px-5 text-right">Unified Score</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.03]">
+                      {sortedPilots.map((p, idx) => (
+                        <tr
+                          key={p.member.name}
+                          onClick={() => setSelectedMember(p)}
+                          className="hover:bg-wine-crimson/[0.08] cursor-pointer transition-colors group"
+                        >
+                          <td className="py-4 px-5">
+                            <div className="flex items-center space-x-3">
+                              <span className="font-bold text-[#8a6875] text-xs">#{idx + 1}</span>
+                              <div>
+                                <span className="font-bold text-white group-hover:text-wine-flare transition-colors block text-sm">
+                                  {p.member.name}
+                                </span>
+                                <span className="text-[10px] text-[#8a6875]">
+                                  CF: @{p.member.cf}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-4 px-4 text-center font-bold" style={{ color: p.rankMeta.color }}>
+                            {p.cfProfile.rating ? `${p.cfProfile.rating} (${p.rankMeta.name})` : 'Unrated'}
+                          </td>
+
+                          <td className="py-4 px-4 text-center">
+                            <span className="text-wine-champagne font-bold">{p.lc.total > 0 ? `${p.lc.total} AC` : '—'}</span>
+                            {p.lc.total > 0 && (
+                              <span className="block text-[10px] text-[#8a6875]">Rank: #{p.lc.rank}</span>
+                            )}
+                          </td>
+
+                          <td className="py-4 px-4 text-center font-bold text-wine-rose">
+                            {p.cc.stars !== 'Unrated' ? p.cc.stars : '—'}
+                          </td>
+
+                          <td className="py-4 px-4 text-center">
+                            <span className={`inline-block px-2 py-0.5 rounded font-bold text-xs ${
+                              p.solvedToday > 0 ? 'bg-wine-flare text-black shadow-glow-ruby' : 'text-[#8a6875]'
+                            }`}>
+                              {p.solvedToday > 0 ? `+${p.solvedToday}` : '0'}
+                            </span>
+                          </td>
+
+                          <td className="py-4 px-4 text-center font-bold text-wine-champagne">
+                            +{p.solved7d}
+                          </td>
+
+                          <td className="py-4 px-4 text-center font-mono">
+                            {p.currentStreak > 0 ? (
+                              <span className="text-wine-flare font-bold">{p.currentStreak}d 🔥</span>
+                            ) : (
+                              <span className="text-[#8a6875]">—</span>
+                            )}
+                          </td>
+
+                          <td className="py-4 px-5 text-right font-black text-white text-sm">
+                            {p.combinedScore}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </section>
+
+            {/* ========================================================
+                SECTION 3: GRIND MATRIX & 180-DAY HEATMAP
+            ======================================================== */}
+            <section id="matrix" className="reveal-section space-y-6">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                  <div className="flex items-center space-x-2 text-wine-flare text-xs font-mono uppercase tracking-widest font-bold">
+                    <i data-lucide="flame" className="w-4 h-4"></i>
+                    <span>Temporal Matrix</span>
+                  </div>
+                  <h2 className="text-3xl font-black text-white font-sans mt-1">180-Day Grind Telemetry</h2>
+                  <p className="text-xs font-mono text-[#9c7885] mt-0.5">Continuous visual tracking for individual grind patterns.</p>
+                </div>
+              </div>
+
+              <div className="khojo-glass rounded-3xl p-6 sm:p-8 space-y-6">
+                <PilotHeatmapMatrix clanData={clanData} />
+              </div>
+            </section>
+
+            {/* ========================================================
+                SECTION 4: TRAJECTORY TELEMETRY CURVES
+            ======================================================== */}
+            <section id="telemetry" className="reveal-section space-y-6">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                  <div className="flex items-center space-x-2 text-wine-flare text-xs font-mono uppercase tracking-widest font-bold">
+                    <i data-lucide="line-chart" className="w-4 h-4"></i>
+                    <span>Trajectory Tracking</span>
+                  </div>
+                  <h2 className="text-3xl font-black text-white font-sans mt-1">Head-to-Head Rating Curves</h2>
+                  <p className="text-xs font-mono text-[#9c7885] mt-0.5">Historical Codeforces contest swings traced over time.</p>
+                </div>
+              </div>
+
+              <div className="khojo-glass rounded-3xl p-6 sm:p-8">
+                <InteractiveTrajectoryGraph clanData={clanData} />
+              </div>
+            </section>
+
+            {/* ========================================================
+                SECTION 5: ARSENAL & HONOR ARENA (BADGES)
+            ======================================================== */}
+            <section id="armory" className="reveal-section space-y-6">
+              <div>
+                <div className="flex items-center space-x-2 text-wine-flare text-xs font-mono uppercase tracking-widest font-bold">
+                  <i data-lucide="award" className="w-4 h-4"></i>
+                  <span>Achievements</span>
+                </div>
+                <h2 className="text-3xl font-black text-white font-sans mt-1">Senior Khojo Honor Arena</h2>
+                <p className="text-xs font-mono text-[#9c7885] mt-0.5">Gamified achievements calculated from multi-platform verified telemetry.</p>
+              </div>
+
+              <BadgesArena clanData={clanData} onSelectPilot={setSelectedMember} />
+            </section>
+
+            {/* ========================================================
+                SECTION 6: PILOT MANAGEMENT TERMINAL
+            ======================================================== */}
+            <section id="terminal" className="reveal-section space-y-6">
+              <div>
+                <div className="flex items-center space-x-2 text-wine-flare text-xs font-mono uppercase tracking-widest font-bold">
+                  <i data-lucide="terminal" className="w-4 h-4"></i>
+                  <span>Pilot Flight Deck</span>
+                </div>
+                <h2 className="text-3xl font-black text-white font-sans mt-1">Operative Enrollment & Control</h2>
+                <p className="text-xs font-mono text-[#9c7885] mt-0.5">Manage pilots authorized into Senior Khojo core.</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                {/* Form */}
+                <form onSubmit={handleAddMember} className="lg:col-span-5 khojo-glass rounded-3xl p-6 space-y-4">
+                  <h3 className="text-xs font-mono uppercase tracking-wider text-wine-flare font-bold flex items-center gap-2">
+                    <i data-lucide="user-plus" className="w-4 h-4"></i>
+                    <span>Enroll Operative</span>
+                  </h3>
+
+                  <div className="space-y-3 font-mono text-xs">
+                    <div>
+                      <label className="text-[#8a6875] block mb-1">Pilot Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Rahul"
+                        value={formName}
+                        onChange={e => setFormName(e.target.value)}
+                        className="w-full bg-black/60 border border-white/[0.08] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wine-flare"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#8a6875] block mb-1">Codeforces Handle</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. tourist"
+                        value={formCf}
+                        onChange={e => setFormCf(e.target.value)}
+                        className="w-full bg-black/60 border border-white/[0.08] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wine-flare"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#8a6875] block mb-1">LeetCode Username</label>
+                      <input
+                        type="text"
+                        placeholder="Leave blank if same as CF"
+                        value={formLc}
+                        onChange={e => setFormLc(e.target.value)}
+                        className="w-full bg-black/60 border border-white/[0.08] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wine-flare"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#8a6875] block mb-1">CodeChef Handle</label>
+                      <input
+                        type="text"
+                        placeholder="Leave blank if same as CF"
+                        value={formCc}
+                        onChange={e => setFormCc(e.target.value)}
+                        className="w-full bg-black/60 border border-white/[0.08] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wine-flare"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-wine-ruby to-wine-crimson hover:from-wine-crimson hover:to-wine-flare text-white font-mono text-xs font-bold transition-all shadow-glow-ruby"
+                  >
+                    + AUTHORIZE OPERATIVE
+                  </button>
+                </form>
+
+                {/* Pilot Card Roster */}
+                <div className="lg:col-span-7 khojo-glass rounded-3xl p-6 divide-y divide-white/[0.04]">
+                  <h3 className="text-xs font-mono uppercase tracking-wider text-white font-bold mb-4 flex items-center justify-between">
+                    <span>Authorized Operatives ({members.length})</span>
+                    <span className="text-[10px] text-[#8a6875]">RADAR CONNECTED</span>
+                  </h3>
+
+                  <div className="space-y-3 pt-2">
+                    {members.map((m, idx) => (
+                      <div key={idx} className="py-2.5 flex items-center justify-between font-mono text-xs">
+                        <div>
+                          <p className="font-bold text-white text-sm">{m.name}</p>
+                          <p className="text-[10px] text-[#8a6875] mt-0.5">
+                            CF: <span className="text-wine-flare">@{m.cf}</span> &bull; LC: <span className="text-wine-champagne">@{m.lc}</span> &bull; CC: <span className="text-wine-rose">@{m.cc}</span>
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveMember(idx)}
+                          className="p-2 text-[#8a6875] hover:text-wine-flare transition-colors"
+                          title="Revoke pilot authorization"
+                        >
+                          <i data-lucide="trash-2" className="w-4 h-4"></i>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+          </main>
+
+          {/* FOOTER */}
+          <footer className="relative z-10 border-t border-white/[0.06] mt-24 py-8 bg-black/60">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-[#8a6875]">
+              <div className="flex items-center space-x-2">
+                <span className="font-bold text-white">SENIOR KHOJO</span>
+                <span>// APEX TRI-PLATFORM COMMAND</span>
+              </div>
+              <div>DATA TRANSMITTED VIA CODEFORCES, LEETCODE & CODECHEF GATEWAYS</div>
+            </div>
+          </footer>
+
+          {/* PROFILE DOSSIER MODAL */}
+          {selectedMember && (
+            <ProfileDossierModal
+              member={selectedMember}
+              onClose={() => setSelectedMember(null)}
+            />
+          )}
+
+        </div>
+      );
+    }
+
+    // ==========================================
+    // COMPONENT: PILOT HEATMAP MATRIX
+    // ==========================================
+    function PilotHeatmapMatrix({ clanData }) {
+      const [selectedPilotName, setSelectedPilotName] = useState(clanData[0]?.member.name || '');
+
+      const target = useMemo(() => {
+        return clanData.find(d => d.member.name === selectedPilotName) || clanData[0];
+      }, [clanData, selectedPilotName]);
+
+      const past180Days = useMemo(() => {
+        const days = [];
+        const today = new Date();
+        for (let i = 179; i >= 0; i--) {
+          const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          d.setDate(d.getDate() - i);
+          days.push(localDateKey(d));
+        }
+        return days;
+      }, []);
+
+      return (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-xs font-mono text-[#8a6875]">ACTIVE PILOT:</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {clanData.map(d => (
+                  <button
+                    key={d.member.name}
+                    onClick={() => setSelectedPilotName(d.member.name)}
+                    className={`px-3 py-1 rounded-xl text-xs font-mono transition-all ${
+                      target?.member.name === d.member.name
+                        ? 'bg-wine-flare text-black font-bold shadow-glow-ruby'
+                        : 'bg-black/50 text-[#8a6875] hover:text-white border border-white/[0.05]'
+                    }`}
+                  >
+                    {d.member.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {target && (
+              <div className="flex items-center space-x-4 font-mono text-xs">
+                <div>
+                  <span className="text-[#8a6875]">CURRENT STREAK:</span>{' '}
+                  <span className="font-bold text-wine-flare">{target.currentStreak} Days</span>
+                </div>
+                <div>
+                  <span className="text-[#8a6875]">PEAK STREAK:</span>{' '}
+                  <span className="font-bold text-white">{target.maxStreak} Days</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {target && (
+            <div>
+              <div className="overflow-x-auto pb-4">
+                <div className="flex gap-1.5 min-w-[720px]">
+                  {Array.from({ length: Math.ceil(past180Days.length / 7) }).map((_, colIdx) => (
+                    <div key={colIdx} className="flex flex-col gap-1.5">
+                      {Array.from({ length: 7 }).map((_, rowIdx) => {
+                        const idx = colIdx * 7 + rowIdx;
+                        if (idx >= past180Days.length) return null;
+                        const dateKey = past180Days[idx];
+                        const cnt = target.dailyCounts[dateKey] || 0;
+
+                        let bg = 'bg-white/[0.03] border border-white/[0.02]';
+                        if (cnt >= 6) bg = 'bg-wine-flare shadow-glow-ruby border-white';
+                        else if (cnt >= 3) bg = 'bg-wine-crimson border-wine-flare/40';
+                        else if (cnt >= 1) bg = 'bg-wine-velvet border-wine-ruby/50';
+
+                        return (
+                          <div
+                            key={dateKey}
+                            title={`${dateKey}: ${cnt} solved`}
+                            className={`w-3.5 h-3.5 rounded-sm transition-transform hover:scale-150 cursor-pointer ${bg}`}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs font-mono text-[#8a6875] pt-4 border-t border-white/[0.06]">
+                <span>180 Days Chronological Activity</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px]">Zero</span>
+                  <span className="w-3 h-3 rounded-sm bg-white/[0.03]"></span>
+                  <span className="w-3 h-3 rounded-sm bg-wine-velvet"></span>
+                  <span className="w-3 h-3 rounded-sm bg-wine-crimson"></span>
+                  <span className="w-3 h-3 rounded-sm bg-wine-flare"></span>
+                  <span className="text-[10px]">High</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ==========================================
+    // COMPONENT: TRAJECTORY GRAPH
+    // ==========================================
+    function InteractiveTrajectoryGraph({ clanData }) {
+      const [selectedPilots, setSelectedPilots] = useState(
+        clanData.slice(0, 4).map(d => d.member.name)
+      );
+
+      const togglePilot = (name) => {
+        if (selectedPilots.includes(name)) {
+          if (selectedPilots.length === 1) return;
+          setSelectedPilots(selectedPilots.filter(n => n !== name));
+        } else {
+          setSelectedPilots([...selectedPilots, name]);
+        }
+      };
+
+      const lineColors = ['#ff1e66', '#ffd6e0', '#a78bfa', '#38bdf8', '#f59e0b'];
+
+      const graphData = useMemo(() => {
+        const filtered = clanData.filter(d => selectedPilots.includes(d.member.name));
+        let allTs = [];
+        filtered.forEach(d => {
+          d.ratingHistory.forEach(c => allTs.push(c.ratingUpdateTimeSeconds));
+        });
+        allTs = [...new Set(allTs)].sort((a, b) => a - b);
+
+        if (!allTs.length) return { minR: 1000, maxR: 2600, series: [], allTs: [] };
+
+        let minR = 9999;
+        let maxR = 0;
+
+        const series = filtered.map((d, i) => {
+          const pts = [];
+          d.ratingHistory.forEach(c => {
+            minR = Math.min(minR, c.newRating);
+            maxR = Math.max(maxR, c.newRating);
+            pts.push({ ts: c.ratingUpdateTimeSeconds, r: c.newRating, contest: c.contestName });
+          });
+          return { name: d.member.name, color: lineColors[i % lineColors.length], pts };
+        });
+
+        minR = Math.max(0, Math.floor((minR - 100) / 100) * 100);
+        maxR = Math.ceil((maxR + 100) / 100) * 100;
+
+        return { minR, maxR, series, allTs };
+      }, [clanData, selectedPilots]);
+
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <span className="text-xs font-mono text-[#8a6875]">TOGGLE TRAJECTORIES:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {clanData.map(d => {
+                const active = selectedPilots.includes(d.member.name);
+                return (
+                  <button
+                    key={d.member.name}
+                    onClick={() => togglePilot(d.member.name)}
+                    className={`px-3 py-1 rounded-xl text-xs font-mono transition-all ${
+                      active
+                        ? 'bg-wine-crimson text-white font-bold shadow-glow-ruby'
+                        : 'bg-black/50 text-[#8a6875] border border-white/[0.05]'
+                    }`}
+                  >
+                    {d.member.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="w-full h-72 sm:h-80 select-none">
+            {graphData.series.length > 0 && graphData.allTs.length > 0 ? (() => {
+              const w = 840; const h = 280;
+              const pad = { top: 20, right: 30, bottom: 30, left: 50 };
+              const graphW = w - pad.left - pad.right;
+              const graphH = h - pad.top - pad.bottom;
+
+              const minTs = graphData.allTs[0];
+              const maxTs = graphData.allTs[graphData.allTs.length - 1];
+              const tsSpan = Math.max(1, maxTs - minTs);
+              const rSpan = Math.max(1, graphData.maxR - graphData.minR);
+
+              const getX = (ts) => pad.left + ((ts - minTs) / tsSpan) * graphW;
+              const getY = (r) => pad.top + (1 - (r - graphData.minR) / rSpan) * graphH;
+
+              return (
+                <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-full overflow-visible">
+                  {[0, 0.33, 0.66, 1].map((pct, idx) => {
+                    const y = pad.top + pct * graphH;
+                    const val = Math.round(graphData.maxR - pct * rSpan);
+                    return (
+                      <g key={idx}>
+                        <line x1={pad.left} y1={y} x2={w - pad.right} y2={y} stroke="rgba(255, 214, 224, 0.08)" strokeDasharray="3 3" />
+                        <text x={pad.left - 8} y={y + 3} textAnchor="end" fill="#8a6875" fontSize="10" fontFamily="JetBrains Mono">{val}</text>
+                      </g>
+                    );
+                  })}
+
+                  {graphData.series.map(s => {
+                    if (!s.pts.length) return null;
+                    const dStr = s.pts.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${getX(pt.ts)} ${getY(pt.r)}`).join(' ');
+                    return (
+                      <g key={s.name}>
+                        <path d={dStr} fill="none" stroke={s.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        {s.pts.map((pt, pIdx) => (
+                          <circle key={pIdx} cx={getX(pt.ts)} cy={getY(pt.r)} r="3" fill={s.color}>
+                            <title>{`${s.name}: ${pt.r} (${pt.contest})`}</title>
+                          </circle>
+                        ))}
+                      </g>
+                    );
+                  })}
+                </svg>
+              );
+            })() : (
+              <div className="h-full flex items-center justify-center text-xs font-mono text-[#8a6875]">
+                Insufficient contest telemetry recorded.
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-center gap-6 pt-2 border-t border-white/[0.06] flex-wrap font-mono text-xs">
+            {graphData.series.map(s => (
+              <div key={s.name} className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }}></span>
+                <span className="text-white font-bold">{s.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // COMPONENT: BADGES & HONOR ARENA
+    // ==========================================
+    function BadgesArena({ clanData, onSelectPilot }) {
+      const badges = [
+        {
+          id: 'b1', title: 'Centurion Vanguard',
+          desc: '100+ verified unique Codeforces solutions.',
+          icon: 'target',
+          unlocked: clanData.filter(d => d.totalCFSolved >= 100)
+        },
+        {
+          id: 'b2', title: 'Iron Streak',
+          desc: 'Sustained consecutive problem solving streak of 5+ days.',
+          icon: 'flame',
+          unlocked: clanData.filter(d => d.maxStreak >= 5)
+        },
+        {
+          id: 'b3', title: 'Expert Stratum',
+          desc: 'Achieved 1600+ peak rating on Codeforces.',
+          icon: 'shield',
+          unlocked: clanData.filter(d => (d.cfProfile.maxRating || 0) >= 1600)
+        },
+        {
+          id: 'b4', title: 'LeetCode Elite',
+          desc: 'Solved 100+ problems on LeetCode matrix.',
+          icon: 'code-2',
+          unlocked: clanData.filter(d => d.lc.total >= 100)
+        },
+        {
+          id: 'b5', title: 'Lightning Rapid',
+          desc: 'Solved 5 or more problems within a single 24h window.',
+          icon: 'zap',
+          unlocked: clanData.filter(d => d.solvedToday >= 5 || Object.values(d.dailyCounts).some(c => c >= 5))
+        },
+        {
+          id: 'b6', title: 'Grandmaster Stratosphere',
+          desc: 'Eclipsed the 2400+ rating zenith.',
+          icon: 'crown',
+          unlocked: clanData.filter(d => (d.cfProfile.maxRating || 0) >= 2400)
+        }
+      ];
+
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {badges.map(b => (
+            <div key={b.id} className="khojo-glass rounded-3xl p-6 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-wine-flare to-wine-bordeaux flex items-center justify-center text-white shadow-glow-ruby">
+                    <i data-lucide={b.icon} className="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-base">{b.title}</h4>
+                    <span className="text-[10px] font-mono text-wine-flare">{b.unlocked.length} Pilots Unlocked</span>
+                  </div>
+                </div>
+                <p className="text-xs text-[#ab8d99] font-sans leading-relaxed">{b.desc}</p>
+              </div>
+
+              <div className="mt-6 pt-3 border-t border-white/[0.06] flex items-center gap-1.5 flex-wrap">
+                {b.unlocked.length > 0 ? (
+                  b.unlocked.map(p => (
+                    <span
+                      key={p.member.name}
+                      onClick={() => onSelectPilot(p)}
+                      className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-black/50 text-wine-champagne border border-white/[0.08] hover:border-wine-flare cursor-pointer transition-colors"
+                    >
+                      {p.member.name}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-[10px] font-mono text-[#573d47]">Locked by all operatives</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // ==========================================
+    // COMPONENT: PROFILE DOSSIER MODAL
+    // ==========================================
+    function ProfileDossierModal({ member, onClose }) {
+      if (!member) return null;
+      const { member: m, cfProfile, rankMeta, totalCFSolved, solvedToday, solved7d, currentStreak, lc, cc, recentAccepted, ratingHistory } = member;
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md" onClick={onClose}>
+          <div
+            className="khojo-glass relative w-full max-w-3xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col border-wine-flare/40 shadow-glow-wine"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-6 bg-gradient-to-r from-wine-velvet via-noir to-noir border-b border-white/[0.08] flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-black text-white">{m.name}</h3>
+                <p className="text-xs font-mono text-[#8a6875] mt-1">
+                  CF: <span className="text-wine-flare">@{m.cf}</span> &bull; LC: <span className="text-wine-champagne">@{m.lc}</span> &bull; CC: <span className="text-wine-rose">@{m.cc}</span>
+                </p>
+              </div>
+              <button onClick={onClose} className="p-2 rounded-xl bg-white/[0.05] text-[#8a6875] hover:text-white">
+                <i data-lucide="x" className="w-5 h-5"></i>
+              </button>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              
+              {/* Tri-Platform Snapshot */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+                <div className="p-4 rounded-2xl bg-black/40 border border-wine-flare/20">
+                  <span className="text-[10px] text-wine-flare uppercase font-bold block mb-1">Codeforces</span>
+                  <span className="text-xl font-bold text-white">{cfProfile.rating || 0}</span>
+                  <span className="block text-[10px] font-bold mt-0.5" style={{ color: rankMeta.color }}>{rankMeta.name}</span>
+                  <span className="block text-[#8a6875] mt-2">Solved: {totalCFSolved}</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-black/40 border border-wine-champagne/20">
+                  <span className="text-[10px] text-wine-champagne uppercase font-bold block mb-1">LeetCode</span>
+                  <span className="text-xl font-bold text-white">{lc.total} AC</span>
+                  <span className="block text-[10px] text-[#8a6875] mt-0.5">Rank: #{lc.rank}</span>
+                  <span className="block text-[#8a6875] mt-2">E:{lc.easy} M:{lc.medium} H:{lc.hard}</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-black/40 border border-wine-rose/20">
+                  <span className="text-[10px] text-wine-rose uppercase font-bold block mb-1">CodeChef</span>
+                  <span className="text-xl font-bold text-white">{cc.stars}</span>
+                  <span className="block text-[10px] text-[#8a6875] mt-0.5">Rating: {cc.rating}</span>
+                  <span className="block text-[#8a6875] mt-2">Global: #{cc.rank}</span>
+                </div>
+              </div>
+
+              {/* Solved Velocity */}
+              <div className="grid grid-cols-3 gap-3 font-mono text-xs text-center">
+                <div className="p-3.5 rounded-2xl bg-black/40 border border-white/[0.05]">
+                  <span className="text-[#8a6875] text-[10px] block">TODAY</span>
+                  <span className="text-lg font-bold text-wine-flare">+{solvedToday}</span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-black/40 border border-white/[0.05]">
+                  <span className="text-[#8a6875] text-[10px] block">7-DAY PACE</span>
+                  <span className="text-lg font-bold text-wine-champagne">+{solved7d}</span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-black/40 border border-white/[0.05]">
+                  <span className="text-[#8a6875] text-[10px] block">STREAK</span>
+                  <span className="text-lg font-bold text-white">{currentStreak}d 🔥</span>
+                </div>
+              </div>
+
+              {/* Recent Solutions */}
+              <div>
+                <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-wine-flare mb-2">
+                  Recent Codeforces Accepted
+                </h4>
+                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  {recentAccepted.slice(0, 8).map((sub, idx) => (
+                    <div key={idx} className="p-2.5 rounded-xl bg-black/40 border border-white/[0.04] flex items-center justify-between text-xs font-mono">
+                      <a
+                        href={`https://codeforces.com/contest/${sub.problem.contestId}/problem/${sub.problem.index}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-white hover:text-wine-flare font-sans truncate max-w-[280px]"
+                      >
+                        {sub.problem.contestId}{sub.problem.index} - {sub.problem.name}
+                      </a>
+                      {sub.problem.rating && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-wine-velvet text-wine-champagne border border-wine-flare/30">
+                          ★ {sub.problem.rating}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Contest Swings */}
+              {ratingHistory.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-wine-champagne mb-2">
+                    Recent Contest Swings
+                  </h4>
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                    {[...ratingHistory].reverse().slice(0, 4).map(c => {
+                      const delta = c.newRating - c.oldRating;
+                      return (
+                        <div key={c.contestId} className="p-2.5 rounded-xl bg-black/40 border border-white/[0.04] flex items-center justify-between text-xs font-mono">
+                          <span className="truncate max-w-[280px] font-sans text-white">{c.contestName}</span>
+                          <span className={`font-bold ${delta >= 0 ? 'text-wine-flare' : 'text-[#8a6875]'}`}>
+                            {delta >= 0 ? `+${delta}` : delta} ({c.newRating})
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            <div className="p-4 bg-black/60 border-t border-white/[0.06] flex justify-end">
+              <button onClick={onClose} className="px-5 py-2 rounded-xl bg-white/[0.06] text-xs font-mono text-white hover:bg-wine-crimson transition-colors">
+                CLOSE DOSSIER
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
